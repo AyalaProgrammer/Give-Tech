@@ -12,6 +12,49 @@
 
 // module.exports = mongoose.model('Volunteer', volunteerSchema);
 
+// const mongoose = require('mongoose');
+
+// const VolunteerSchema = new mongoose.Schema({
+//     fullName: {
+//         type: String,
+//         required: true
+//     },
+//     helpArea: {
+//         type: String, // למשל: "עריכת קו"ח באנגלית"
+//         required: true
+//     },
+//     seniority: {
+//         type: Number, // וותק בשנים
+//         required: true
+//     },
+//     experienceArea: {
+//         type: String, // תחום ניסיון (למשל: Full Stack)
+//         required: true
+//     },
+//     technologies: {
+//         type: [String], // מערך של טכנולוגיות (למשל: ["React", "Node.js"])
+//         default: []
+//     },
+//     workPlace: {
+//         type: String
+//     },
+//     contactInfo: {
+//         type: String,
+//         required: true
+//     },
+//     notes: {
+//         type: String
+//     },
+//     createdAt: {
+//         type: Date,
+//         default: Date.now
+//     }
+// });
+
+// module.exports = mongoose.model('Volunteer', VolunteerSchema);
+
+
+
 const mongoose = require('mongoose');
 
 const VolunteerSchema = new mongoose.Schema({
@@ -19,20 +62,26 @@ const VolunteerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    // השורה שהוספתי כדי שהמייל באמת יישמר במערכת:
+    email: {
+        type: String,
+        required: false, // לא חובה
+        default: null
+    },
     helpArea: {
-        type: String, // למשל: "עריכת קו"ח באנגלית"
+        type: String, 
         required: true
     },
     seniority: {
-        type: Number, // וותק בשנים
+        type: Number, 
         required: true
     },
     experienceArea: {
-        type: String, // תחום ניסיון (למשל: Full Stack)
+        type: String, 
         required: true
     },
     technologies: {
-        type: [String], // מערך של טכנולוגיות (למשל: ["React", "Node.js"])
+        type: [String], 
         default: []
     },
     workPlace: {
