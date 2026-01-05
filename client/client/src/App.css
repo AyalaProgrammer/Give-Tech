@@ -62,7 +62,8 @@ button {
   cursor: pointer;
   font-size: 18px;
   font-weight: bold;
-  transition: background 0.3s;
+  /* שימי לב שאין רווח מוזר בהתחלה */
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 button:hover {
@@ -99,4 +100,33 @@ td {
 
 tr:hover {
   background-color: #f9f9f9;
+}
+/* אנימציית סיבוב */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #005f8d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.user-avatar-fallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #005f8d;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
