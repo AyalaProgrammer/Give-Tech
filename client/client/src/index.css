@@ -130,7 +130,7 @@ table {
   font-size: 0.8rem;
   color: #a0aec0;
 }
-
+*/
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -138,7 +138,7 @@ table {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-} */
+} 
 
 /* רקע שתופס את כל המסך וממרכז את התוכן */
 .login-container {
@@ -202,3 +202,103 @@ table {
     transform: scale(1) translateY(0); 
   }
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* background: rgba(0, 0, 0, 0.4); */
+  background: rgba(0, 0, 0, 0.5); /* קצת יותר כהה כדי שיבלוט */
+  backdrop-filter: blur(4px); /* אפקט טשטוש יוקרתי */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  /* max-width: 450px; */
+  max-width: 500px; /* הגדלתי קצת שיהיה נוח */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  direction: rtl;
+  /* מבטיח שהתוכן בתוך הכרטיס לא ייחתך */
+  z-index: 10000;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.icon-circle {
+  background: #f0f7ff;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.blue-icon { color: #007bff; }
+
+.input-group {
+  margin-bottom: 1.2rem;
+  text-align: right;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.input-group input, .input-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.submit-btn {
+  width: 100%;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover { background: #0056b3; }
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+}
+
+
+
+
+
+
