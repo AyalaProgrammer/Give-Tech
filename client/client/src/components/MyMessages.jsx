@@ -35,7 +35,7 @@ const MyMessages = ({ volunteerId }) => {
     });
     return () => socket.off('new_message');
   }, [volunteerId, fetchMessages]);
-
+//לא קשור
   const handleSendMessage = async () => {
     if (!replyText.trim()) return;
 
