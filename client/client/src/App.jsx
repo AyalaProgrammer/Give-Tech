@@ -1,87 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode"; // ייבוא המפענח
-import ReactGA from "react-ga4";
-import Login from './components/Login';
-import VolunteersTable from './components/VolunteersTable';
-import AddVolunteer from './components/AddVolunteer';
-import './App.css';
+import { useState, useEffect } from "react"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { GoogleOAuthProvider } from "@react-oauth/google"
+import { jwtDecode } from "jwt-decode"
+import ReactGA from "react-ga4"
+import { CircularProgress, Box } from "@mui/material" // הוספת רכיב טעינה
 
-ReactGA.initialize("G-HJ69XTBX9V");
+import Login from "./components/Login"
+import VolunteersTable from "./components/VolunteersTable"
+import AddVolunteer from "./components/AddVolunteer"
+import HomeInfoPage from "./components/Home"
+import Header from "./components/Header"
+import PreLoginLandingPage from "./components/PreLoginLandingPage"
+import "./App.css"
+import LandingHeader from "./components/HeaderOutside"
+
+ReactGA.initialize("G-HJ69XTBX9V")
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null); // כאן נשמור את פרטי המשתמשת
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true) // מונע קפיצה לדף הבית ברענון
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  useEffect(() => {
+    // בדיקה ראשונית של המשתמש ב-LocalStorage
+    const savedUser = localStorage.getItem("user")
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser))
+        setIsLoggedIn(true)
+      } catch (error) {
+        console.error("Error parsing saved user:", error)
+        localStorage.removeItem("user")
+      }
+    }
+    // ברגע שהבדיקה הסתיימה, משחררים את חסימת הרינדור
+    setIsCheckingAuth(false)
+  }, [])
 
   const handleLoginSuccess = (credentialResponse) => {
-    // פענוח הקוד שחזר מגוגל כדי להוציא שם ותמונה
-    const decoded = jwtDecode(credentialResponse.credential);
-    setUser(decoded); 
-    setIsLoggedIn(true);
-    
-    ReactGA.event({ category: "User", action: "Login_Success" });
-  };
+    const decoded = jwtDecode(credentialResponse.credential)
+    setUser(decoded)
+    setIsLoggedIn(true)
+    localStorage.setItem("user", JSON.stringify(decoded))
+    ReactGA.event({ category: "User", action: "Login_Success" })
+  }
+
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+    setUser(null)
+    localStorage.removeItem("user")
+    setImgLoaded(false)
+    ReactGA.event({ category: "User", action: "Logout" })
+  }
+
+  // בזמן הבדיקה, נציג מסך טעינה נקי בצבעי המותג
+  if (isCheckingAuth) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: '#F8FAFC'
+        }}
+      >
+        <CircularProgress sx={{ color: '#007AFF' }} />
+      </Box>
+    )
+  }
 
   return (
     <GoogleOAuthProvider clientId="973582819268-hsc8eh347h9m7qumtb2t3f2vcoffp8ph.apps.googleusercontent.com">
-      {!isLoggedIn ? (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <div style={{ padding: '20px', direction: 'rtl' }}>
-          
-          {/* סרגל עליון עם תמונת המשתמשת */}
-          <div style={styles.headerBar}>
-            <div style={styles.userInfo}>
-              <img src={user?.picture} alt="user" style={styles.userImage} />
-              <span>שלום, <strong>{user?.name}</strong></span>
-            </div>
-            <button onClick={() => setIsLoggedIn(false)} style={styles.logoutBtn}>התנתקות</button>
+      <Router>
+        {!isLoggedIn ? (
+          /* נתיבים למשתמש לא מחובר */
+          <div style={{ padding: "20px", direction: "rtl", minHeight: "100vh", backgroundColor: "#F8FAFC" }}>
+            <LandingHeader
+              user={user}
+              imgLoaded={imgLoaded}
+              setImgLoaded={setImgLoaded}
+              onLogout={handleLogout}
+            />
+            <Routes>
+              <Route path="/" element={<PreLoginLandingPage />} />
+              <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+              {/* אם המשתמש לא מחובר ומנסה להגיע לכל דף אחר - הפניה לדף הנחיתה */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </div>
+        ) : (
+          /* נתיבים למשתמש מחובר */
+          <div style={{ padding: "20px", direction: "rtl", minHeight: "100vh", backgroundColor: "#F8FAFC" }}>
+            <Header
+              user={user}
+              imgLoaded={imgLoaded}
+              setImgLoaded={setImgLoaded}
+              onLogout={handleLogout}
+            />
 
-          <h2 style={{ color: '#005f8d', textAlign: 'center' }}>ניהול מתנדבי GiveTech</h2>
-          
-          <AddVolunteer onVolunteerAdded={() => setRefreshKey(k => k + 1)} />
-          <hr style={{ margin: '30px 0', border: '0', borderTop: '1px solid #ddd' }} />
-          <VolunteersTable key={refreshKey} />
-        </div>
-      )}
+            <main role="main" style={{ marginTop: "20px" }}>
+              <Routes>
+                {/* כאן ה-Routes נשמרים ברענון כי isLoggedIn כבר true */}
+                <Route path="/home" element={<HomeInfoPage />} />
+                <Route path="/add" element={<AddVolunteer onVolunteerAdded={() => setRefreshKey((k) => k + 1)} />} />
+                <Route path="/list" element={<VolunteersTable key={refreshKey} />} />
+
+                {/* אם המשתמש מחובר ובטעות הגיע ל-URL לא קיים או לדף הנחיתה - הפניה ל-Home המחובר */}
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
+              </Routes>
+            </main>
+          </div>
+        )}
+      </Router>
     </GoogleOAuthProvider>
-  );
+  )
 }
 
-const styles = {
-  headerBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: '10px 20px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-    marginBottom: '20px'
-  },
-  userInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '16px'
-  },
-  userImage: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    border: '2px solid #005f8d'
-  },
-  logoutBtn: {
-    backgroundColor: '#ff4d4d',
-    color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  }
-};
-
-export default App;
+export default App
