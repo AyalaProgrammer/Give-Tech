@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
     Box, Table, TableBody, TableCell, TableRow, Typography, 
-    Autocomplete, TextField, Button 
+    Autocomplete, TextField, Button, Badge 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-// אייקונים
+// הסרנו את ה-io וה-socket מכאן - הם עברו ל-App.jsx
 import { Mail, MessageSquare } from 'lucide-react'; 
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
@@ -35,7 +35,8 @@ const categoryMapping = {
     "הכנה לראיונות פיתוח פרונטאנד": ["ראיון", "פרונט", "React"]
 };
 
-const VolunteersTable = ({ user, volunteerId }) => {
+// הוספנו את unreadCount ברשימת הפרופס שמתקבלים מהאבא (App.jsx)
+const VolunteersTable = ({ user, volunteerId, unreadCount }) => {
     const navigate = useNavigate();
     const [volunteers, setVolunteers] = useState([]);
     const [selectedTechs, setSelectedTechs] = useState([]);
@@ -43,6 +44,7 @@ const VolunteersTable = ({ user, volunteerId }) => {
     const [selectedHelpAreas, setSelectedHelpAreas] = useState([]);
     const [selectedVol, setSelectedVol] = useState(null);
 
+    // משיכת רשימת המתנדבים
     const fetchVolunteers = useCallback(async () => {
         try {
             const response = await axios.get('http://localhost:5000/api/volunteers');
@@ -54,6 +56,7 @@ const VolunteersTable = ({ user, volunteerId }) => {
 
     useEffect(() => {
         fetchVolunteers();
+        // לוגיקת הסוקט וה-fetchUnreadCount הוסרה מכאן - היא מנוהלת ב-App.jsx
     }, [fetchVolunteers]);
 
     const handleUpdate = async (id, currentEmail) => {
@@ -84,45 +87,30 @@ const VolunteersTable = ({ user, volunteerId }) => {
     }, [volunteers, selectedTechs, selectedWorkplaces, selectedHelpAreas]);
 
     return (
-        <Box sx={{ 
-            width: '100%', 
-            direction: 'rtl', 
-            height: '100vh', 
-            display: 'flex', 
-            flexDirection: 'column',
-            overflow: 'hidden', 
-            backgroundColor: '#f4f7f9'
-        }}>
-            
-            <Box sx={{ 
-                zIndex: 1200, 
-                backgroundColor: '#007bb5', 
-                color: 'white',
-                flexShrink: 0, 
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-            }}>
+        <Box sx={{ width: '100%', direction: 'rtl', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#f4f7f9' }}>
+            {/* Header section */}
+            <Box sx={{ zIndex: 1200, backgroundColor: '#007bb5', color: 'white', flexShrink: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
                 <Box sx={{ px: 4, pt: 4, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold' }}>GiveTech</Typography>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      
                         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
                             <MessageSquare size={24} />
                             <Typography sx={{ fontSize: '0.7rem' }}>הפניות שלי</Typography>
                         </Box>
 
-           
                         {volunteerId && (
                             <Box 
                                 onClick={() => navigate('/inbox')}
                                 sx={{ 
-                                    textAlign: 'center', 
-                                    cursor: 'pointer',
-                                    transition: '0.2s',
+                                    textAlign: 'center', cursor: 'pointer', transition: '0.2s',
                                     '&:hover': { opacity: 0.7, transform: 'scale(1.1)' } 
                                 }}
                             >
-                                <Mail size={24} />
+                                {/* ה-Badge עכשיו מקבל את הערך מהפרופ unreadCount */}
+                                <Badge badgeContent={unreadCount} color="error" invisible={unreadCount === 0}>
+                                    <Mail size={24} />
+                                </Badge>
                                 <Typography sx={{ fontSize: '0.7rem' }}>דואר נכנס</Typography>
                             </Box>
                         )}
@@ -133,27 +121,17 @@ const VolunteersTable = ({ user, volunteerId }) => {
                     </Box>
                 </Box>
 
-    
+                {/* פילטרים */}
                 <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', gap: 2 }}>
                     {[ 
                         { label: "מקום עבודה", options: allWorkplaces, value: selectedWorkplaces, setter: setSelectedWorkplaces },
                         { label: "שפות וטכנולוגיות", options: allTechnologies, value: selectedTechs, setter: setSelectedTechs },
                         { label: "תחום עזרה", options: HELP_AREAS_LIST, value: selectedHelpAreas, setter: setSelectedHelpAreas }
                     ].map((filter, index) => (
-                        <Autocomplete
-                            key={index}
-                            multiple
-                            options={filter.options}
-                            value={filter.value}
-                            onChange={(e, val) => filter.setter(val)}
-                            renderTags={() => null}
-                            sx={{ width: 220, backgroundColor: 'white', borderRadius: 1 }}
-                            renderInput={(params) => <TextField {...params} placeholder={filter.label} size="small" />}
-                        />
+                        <Autocomplete key={index} multiple options={filter.options} value={filter.value} onChange={(e, val) => filter.setter(val)} renderTags={() => null} sx={{ width: 220, backgroundColor: 'white', borderRadius: 1 }} renderInput={(params) => <TextField {...params} placeholder={filter.label} size="small" />} />
                     ))}
                 </Box>
 
-     
                 <Box sx={{ backgroundColor: '#005f8d', display: 'flex', width: '100%', mt: 1 }}>
                     <Box sx={{ ...headerStyle, width: '15%' }}>שם</Box>
                     <Box sx={{ ...headerStyle, width: '35%' }}>תחום עזרה</Box>
@@ -163,6 +141,7 @@ const VolunteersTable = ({ user, volunteerId }) => {
                 </Box>
             </Box>
 
+            {/* טבלת נתונים */}
             <Box sx={{ flex: 1, overflowY: 'auto', backgroundColor: 'white' }}>
                 <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
                     <TableBody>
@@ -183,7 +162,6 @@ const VolunteersTable = ({ user, volunteerId }) => {
                     </TableBody>
                 </Table>
             </Box>
-
             <ContactModal isOpen={!!selectedVol} onClose={() => setSelectedVol(null)} volunteer={selectedVol} />
         </Box>
     );

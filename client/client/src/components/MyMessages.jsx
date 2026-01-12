@@ -28,27 +28,58 @@ const MyMessages = ({ volunteerId }) => {
 
   useEffect(() => {
     fetchMessages();
+
     socket.on('new_message', (newMessage) => {
       if (newMessage.receiverId === volunteerId || newMessage.senderId === volunteerId) {
-        setMessages((prev) => [newMessage, ...prev]);
+        setMessages((prev) => {
+          if (prev.find(m => m._id === newMessage._id)) return prev;
+          return [newMessage, ...prev];
+        });
       }
     });
+
     return () => socket.off('new_message');
   }, [volunteerId, fetchMessages]);
-//לא קשור
+
+  // הפונקציה המעודכנת שביקשת
+  const handleOpenMessage = async (msg) => {
+    setSelectedConversation(msg);
+    
+    // בדיקה אם זו הודעה נכנסת שטרם נקראה
+    if (msg.isRead === false && msg.receiverId === volunteerId) {
+      
+      // עדכון אופטימי בסטייט המקומי כדי שהעיצוב ישתנה מיד
+      setMessages(prevMessages => 
+        prevMessages.map(m => 
+          m._id === msg._id ? { ...m, isRead: true } : m
+        )
+      );
+
+      try {
+        // הקריאה המדויקת שביקשת
+        await axios.patch(`http://localhost:5000/api/messages/read/${msg._id}`);
+        
+        // לא צריך לעשות כאן כלום עם הסטייט מעבר למה שעשינו, 
+        // כי App.jsx יקבל עדכון מהסוקט (שהשרת שולח) ויוריד את המספר לבד!
+      } catch (err) {
+        console.error("שגיאה בעדכון קריאה", err);
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!replyText.trim()) return;
 
     try {
       const replyData = {
         senderId: volunteerId,
-        receiverId: selectedConversation.senderId,
+        receiverId: selectedConversation.senderId === volunteerId ? selectedConversation.receiverId : selectedConversation.senderId,
         content: replyText,
       };
 
       await axios.post('http://localhost:5000/api/messages', replyData);
       setReplyText('');
-     
+      fetchMessages(); 
     } catch (err) {
       console.error("שגיאה בשליחת תגובה", err);
       alert("חלה שגיאה בשליחת ההודעה");
@@ -58,16 +89,11 @@ const MyMessages = ({ volunteerId }) => {
   return (
     <div className="messages-section" style={{ padding: '40px', backgroundColor: '#f9f9f9', minHeight: '100vh', position: 'relative', direction: 'rtl' }}>
       
-    
-      <button 
-        onClick={() => navigate('/')} 
-        style={backButtonStyle}
-      >
+      <button onClick={() => navigate('/')} style={backButtonStyle}>
         <ArrowRight size={20} />
         חזרה לטבלה
       </button>
 
-      {/* כותרת */}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
         <h2 style={{ textAlign: 'center', color: '#005f8d', margin: 0 }}>
           <Mail style={{ marginLeft: '10px', verticalAlign: 'middle' }} />
@@ -76,7 +102,6 @@ const MyMessages = ({ volunteerId }) => {
         {loading && <RefreshCw size={20} className="animate-spin" style={{ color: '#007bb5' }} />}
       </div>
 
-    
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         {messages.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
@@ -87,19 +112,26 @@ const MyMessages = ({ volunteerId }) => {
             <div 
               key={msg._id} 
               className="message-card" 
-              onClick={() => setSelectedConversation(msg)}
-              style={{ ...messageCardStyle, cursor: 'pointer' }}
+              onClick={() => handleOpenMessage(msg)}
+              style={{ 
+                ...messageCardStyle, 
+                backgroundColor: msg.isRead ? 'white' : '#edf7ff', 
+                borderRight: msg.isRead ? '6px solid #ccc' : '6px solid #007bb5' 
+              }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span style={{ fontWeight: 'bold', color: '#007bb5', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ fontWeight: msg.isRead ? 'normal' : 'bold', color: '#007bb5', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <User size={16} /> {msg.senderId === volunteerId ? "אני" : (msg.senderId || "פונה אנונימית")}
+                  {(msg.isRead === false && msg.receiverId === volunteerId) && (
+                    <span style={newBadgeStyle}>חדש</span>
+                  )}
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#999', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Clock size={14} /> {new Date(msg.createdAt).toLocaleString('he-IL')}
                 </span>
               </div>
               
-              <p style={messageContentPreviewStyle}>
+              <p style={{...messageContentPreviewStyle, fontWeight: msg.isRead ? 'normal' : 'bold'}}>
                 {msg.content}
               </p>
             </div>
@@ -107,7 +139,6 @@ const MyMessages = ({ volunteerId }) => {
         )}
       </div>
 
-     
       {selectedConversation && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -115,14 +146,14 @@ const MyMessages = ({ volunteerId }) => {
               <button onClick={() => setSelectedConversation(null)} style={closeButtonStyle}>
                 <X size={20} />
               </button>
-              <h3 style={{ margin: 0, color: '#005f8d' }}>שיחה עם {selectedConversation.senderId || "פונה"}</h3>
+              <h3 style={{ margin: 0, color: '#005f8d' }}>שיחה</h3>
             </div>
 
             <div style={chatBodyStyle}>
               <div style={receivedMessageStyle}>
                 <p style={{ margin: 0 }}>{selectedConversation.content}</p>
                 <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                   {new Date(selectedConversation.createdAt).toLocaleTimeString('he-IL')}
+                    {new Date(selectedConversation.createdAt).toLocaleTimeString('he-IL')}
                 </span>
               </div>
             </div>
@@ -156,43 +187,11 @@ const MyMessages = ({ volunteerId }) => {
   );
 };
 
-
-const backButtonStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  backgroundColor: '#fff',
-  border: '1px solid #ddd',
-  padding: '8px 16px',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  color: '#444',
-  fontWeight: 'bold',
-  marginBottom: '20px',
-  boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-};
-
-const messageContentPreviewStyle = {
-  margin: '0', 
-  color: '#333', 
-  lineHeight: '1.6', 
-  fontSize: '1.05rem',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis'
-};
-
-const messageCardStyle = {
-  background: 'white',
-  padding: '20px',
-  borderRadius: '12px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-  marginBottom: '15px',
-  borderRight: '6px solid #007bb5',
-  textAlign: 'right',
-  transition: 'transform 0.2s',
-};
-
+// עיצובים
+const newBadgeStyle = { backgroundColor: '#ff4d4f', color: 'white', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '10px', marginRight: '8px' };
+const backButtonStyle = { display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#fff', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', color: '#444', fontWeight: 'bold', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
+const messageContentPreviewStyle = { margin: '0', color: '#333', lineHeight: '1.6', fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+const messageCardStyle = { background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '15px', textAlign: 'right', transition: 'transform 0.2s', cursor: 'pointer' };
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000, padding: '20px' };
 const modalContentStyle = { backgroundColor: 'white', width: '100%', maxWidth: '500px', borderRadius: '16px', display: 'flex', flexDirection: 'column', height: '70vh', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', direction: 'rtl' };
 const modalHeaderStyle = { padding: '15px 20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
@@ -204,4 +203,3 @@ const sendButtonStyle = { backgroundColor: '#007bb5', color: 'white', border: 'n
 const closeButtonStyle = { background: 'none', border: 'none', cursor: 'pointer', color: '#666' };
 
 export default MyMessages;
-
