@@ -50,7 +50,7 @@ const HomeInfoPage = () => {
               borderRadius: 'var(--radius-lg)',
               cursor: 'pointer'
             }}
-            onClick={() => navigate("/list")}
+            onClick={() => navigate("/volunteersTable")}
           >
             התחילו לחקור את המתנדבות
           </button>

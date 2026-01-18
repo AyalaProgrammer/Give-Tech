@@ -2,40 +2,39 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const Volunteer = require('./models/Volunteer');
+const http = require('http');
+const { Server } = require('socket.io');
 
 dotenv.config();
+const app = express();
+const server = http.createServer(app);
 
-const app = express(); // המשתנה app מייצג את השרת
-
-// Middleware
+const io = new Server(server, {
+    cors: {
+      origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+      methods: ["GET", "POST"]
+    }
+  });
 app.use(cors());
 app.use(express.json());
 
-// חיבור ל-MongoDB
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ מחובר ל-MongoDB Atlas'))
     .catch(err => console.error('❌ שגיאה בחיבור:', err));
 
-// נתיבי API
-app.get('/api/volunteers', async (req, res) => {
-    try {
-        const volunteers = await Volunteer.find();
-        res.json(volunteers);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
+const path = require('path');
 
-app.post('/api/volunteers', async (req, res) => {
-    try {
-        const newVolunteer = new Volunteer(req.body);
-        await newVolunteer.save();
-        res.status(201).json(newVolunteer);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+const volunteerPath = path.join(__dirname, 'routes', 'volunteerRoutes.js');
+const messagePath = path.join(__dirname, 'routes', 'messageRoutes.js');
 
+console.log("Attempting to load routes from:", volunteerPath);
+
+const volunteerRoutes = require(volunteerPath);
+const messageRoutes = require(messagePath)(io);
+app.use('/api/volunteers', volunteerRoutes);
+app.use('/api/messages', messageRoutes);
+
+// הפעלה
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 השרת רץ בפורט ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 השרת והסוקט רצים בפורט ${PORT}`));

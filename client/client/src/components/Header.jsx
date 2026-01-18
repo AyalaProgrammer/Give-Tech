@@ -66,8 +66,8 @@ const Header = ({ user, imgLoaded, setImgLoaded, onLogout }) => {
         </button>
 
         <button
-          className={`nav-btn button ${location.pathname === "/list" ? "active" : ""}`}
-          onClick={() => navigate("/list")}
+          className={`nav-btn button ${location.pathname === "/volunteersTable" ? "active" : ""}`}
+          onClick={() => navigate("/volunteersTable")}
           aria-current={location.pathname === "/list" ? "page" : undefined}
         >
           <MenuIcon style={{ marginLeft: "5px", fontSize: "20px" }} />

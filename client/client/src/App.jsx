@@ -1,41 +1,47 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import { jwtDecode } from "jwt-decode"
 import ReactGA from "react-ga4"
-import { CircularProgress, Box } from "@mui/material" // הוספת רכיב טעינה
 
+import {
+  CircularProgress,
+  Box,
+  CssBaseline,
+} from "@mui/material"
+
+import HomeInfoPage from "./components/Home"
 import Login from "./components/Login"
 import VolunteersTable from "./components/VolunteersTable"
-import AddVolunteer from "./components/AddVolunteer"
-import HomeInfoPage from "./components/Home"
 import Header from "./components/Header"
 import PreLoginLandingPage from "./components/PreLoginLandingPage"
-import "./App.css"
 import LandingHeader from "./components/HeaderOutside"
+import MyMessages from "./components/MyMessages"
+import "./App.css"
 
 ReactGA.initialize("G-HJ69XTBX9V")
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState(null)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true) // מונע קפיצה לדף הבית ברענון
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [imgLoaded, setImgLoaded] = useState(false)
 
+  const volunteerId = user?.sub;
+
   useEffect(() => {
-    // בדיקה ראשונית של המשתמש ב-LocalStorage
     const savedUser = localStorage.getItem("user")
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser))
+        const decoded = JSON.parse(savedUser)
+        setUser(decoded)
         setIsLoggedIn(true)
       } catch (error) {
         console.error("Error parsing saved user:", error)
         localStorage.removeItem("user")
       }
     }
-    // ברגע שהבדיקה הסתיימה, משחררים את חסימת הרינדור
     setIsCheckingAuth(false)
   }, [])
 
@@ -48,25 +54,16 @@ function App() {
   }
 
   const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUser(null)
-    localStorage.removeItem("user")
-    setImgLoaded(false)
-    ReactGA.event({ category: "User", action: "Logout" })
+    setIsLoggedIn(false);
+    setUser(null);
+    localStorage.removeItem("user");
+    setImgLoaded(false);
+    ReactGA.event({ category: "User", action: "Logout" });
   }
 
-  // בזמן הבדיקה, נציג מסך טעינה נקי בצבעי המותג
   if (isCheckingAuth) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: '#F8FAFC'
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#F8FAFC' }}>
         <CircularProgress sx={{ color: '#007AFF' }} />
       </Box>
     )
@@ -75,9 +72,9 @@ function App() {
   return (
     <GoogleOAuthProvider clientId="973582819268-hsc8eh347h9m7qumtb2t3f2vcoffp8ph.apps.googleusercontent.com">
       <Router>
+        <CssBaseline />
         {!isLoggedIn ? (
-          /* נתיבים למשתמש לא מחובר */
-          <div style={{ padding: "20px", direction: "rtl", minHeight: "100vh", backgroundColor: "#F8FAFC" }}>
+          <Box sx={{ padding: "20px", direction: "rtl", minHeight: "100vh", backgroundColor: "#F8FAFC" }}>
             <LandingHeader
               user={user}
               imgLoaded={imgLoaded}
@@ -87,13 +84,11 @@ function App() {
             <Routes>
               <Route path="/" element={<PreLoginLandingPage />} />
               <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-              {/* אם המשתמש לא מחובר ומנסה להגיע לכל דף אחר - הפניה לדף הנחיתה */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </div>
+          </Box>
         ) : (
-          /* נתיבים למשתמש מחובר */
-          <div style={{ padding: "20px", direction: "rtl", minHeight: "100vh", backgroundColor: "#F8FAFC" }}>
+          <Box sx={{ direction: "rtl", minHeight: "100vh", backgroundColor: "#f4f7f9" }}>
             <Header
               user={user}
               imgLoaded={imgLoaded}
@@ -101,23 +96,30 @@ function App() {
               onLogout={handleLogout}
             />
 
-            <main role="main" style={{ marginTop: "20px" }}>
+            <main>
               <Routes>
-                {/* כאן ה-Routes נשמרים ברענון כי isLoggedIn כבר true */}
-                <Route path="/home" element={<HomeInfoPage />} />
-                <Route path="/add" element={<AddVolunteer onVolunteerAdded={() => setRefreshKey((k) => k + 1)} />} />
-                <Route path="/list" element={<VolunteersTable key={refreshKey} />} />
+                <Route path="/volunteersTable" element={
+                  <Box sx={{ p: { xs: 1, md: 0 } }}>
+                    <VolunteersTable
+                      key={refreshKey}
+                      user={user}
+                      volunteerId={volunteerId}
+                    />
+                  </Box>
+                } />
 
-                {/* אם המשתמש מחובר ובטעות הגיע ל-URL לא קיים או לדף הנחיתה - הפניה ל-Home המחובר */}
+                <Route path="/home" element={<HomeInfoPage />} />
+                <Route path="/inbox" element={<MyMessages volunteerId={volunteerId} />} />
+
                 <Route path="/" element={<Navigate to="/home" replace />} />
                 <Route path="*" element={<Navigate to="/home" replace />} />
               </Routes>
             </main>
-          </div>
+          </Box>
         )}
       </Router>
     </GoogleOAuthProvider>
   )
 }
 
-export default App
+export default App;

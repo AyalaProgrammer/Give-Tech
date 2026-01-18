@@ -341,4 +341,59 @@ tr:last-child td {
   .user-info {
     font-size: 14px;
   }
+
+  .user-avatar-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #005f8d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f9;
+} */
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    /* ביטלנו את ה-display: flex ואת ה-place-items */
+    background-color: #f4f7f9;
+    direction: rtl;
+    /* חשוב שיהיה כאן */
+  }
+
+  .App {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f4f7f9;
+    direction: rtl;
+    display: block;
+  }
+
+
+  #root {
+    width: 100%;
+  }
 }
