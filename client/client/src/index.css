@@ -1,76 +1,46 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* צבעים */
+  --primary: #005f8d;
+  --primary-dark: #004a6e;
+  --primary-light: #008fbb;
+  --bg-dark: #242424;
+  --bg-white: #fff;
+  --bg-light-grey: #f9f9f9;
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-dark: #213547;
+  --text-secondary: #555;
+  --focus: #646cff;
+  --focus-hover: #535bf2;
+  --focus-light: #747bff;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* פונטים */
+  --font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --line-height: 1.5;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* מעבר/טרנזישן */
+  --transition-fast: 0.25s ease;
+
+  /* צללים */
+  --shadow-subtle: 0 25px 50px rgba(0,0,0,0.3);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+* { box-sizing: border-box; }
+body { margin:0; padding:0; font-family: var(--font-family); line-height: var(--line-height); font-weight:400; color: var(--text-primary); background: var(--bg-white); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; color-scheme: light dark; }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+h1 { font-size: 3.2em; line-height:1.1; margin:0; font-weight:700; }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+a { font-weight:500; color: var(--focus); text-decoration: inherit; transition: color var(--transition-fast); }
+a:hover { color: var(--focus-hover); }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+  border-radius: 8px; border:1px solid transparent; padding:0.6em 1.2em;
+  font-size:1em; font-weight:500; font-family: inherit;
+  background: #1a1a1a; cursor:pointer; transition:border-color var(--transition-fast);
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+button:hover { border-color: var(--focus); }
+button:focus, button:focus-visible { outline: 4px auto -webkit-focus-ring-color; }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-table {
-  width: 100%;
-  table-layout: fixed; /* עוזר לשמור על פרופורציות קבועות של עמודות */
-  border-collapse: collapse;
-}
+table { width:100%; table-layout: fixed; border-collapse: collapse; }
 
 /* .login-container {
   display: flex;
@@ -142,65 +112,49 @@ table {
 
 /* רקע שתופס את כל המסך וממרכז את התוכן */
 .login-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  width: 100vw;
-  /* גרדיאנט כחול עמוק ומודרני שמתפרס על הכל */
-  background: linear-gradient(135deg, #005f8d 0%, #008fbb 50%, #004a6e 100%);
-  margin: 0;
-  padding: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  direction: rtl;
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; width:100vw;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--primary-dark) 100%);
+  position:fixed; top:0; left:0; direction:rtl; overflow:auto; padding:20px; margin:0;
 }
 
-/* הכרטיס הלבן במרכז */
 .login-card {
-  background: rgba(255, 255, 255, 0.95); /* לבן מעט שקוף למראה יוקרתי */
-  padding: 3.5rem;
-  border-radius: 30px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  width: 100%;
-  max-width: 450px; /* רוחב נוח לעין */
-  backdrop-filter: blur(10px); /* אפקט זכוכית עדין */
+  background: rgba(255,255,255,0.95);
+  padding:3.5rem;
+  border-radius:30px;
+  box-shadow: var(--shadow-subtle);
+  text-align:center;
+  width:100%; max-width:450px;
+  backdrop-filter: blur(10px);
   animation: cardEntrance 0.7s ease-out;
 }
 
-.brand-logo {
-  color: #005f8d;
-  font-size: 3rem;
-  font-weight: 900;
-  margin-bottom: 10px;
-  letter-spacing: -1px;
-}
+.brand-logo { color: var(--primary); font-size:3rem; font-weight:900; margin:0 0 10px; letter-spacing:-1px; line-height:1.2; }
+.brand-tagline { color: var(--text-secondary); font-size:1.1rem; margin:0 0 40px; line-height:1.4; }
 
-.brand-tagline {
-  color: #555;
-  font-size: 1.1rem;
-  margin-bottom: 40px;
-}
+.auth-section { display:flex; flex-direction:column; align-items:center; gap:20px; }
 
-.auth-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-/* אנימציה של הכרטיס שמופיע מהמרכז */
 @keyframes cardEntrance {
-  from { 
-    opacity: 0; 
-    transform: scale(0.9) translateY(30px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: scale(1) translateY(0); 
-  }
+  from { opacity:0; transform: scale(0.9) translateY(30px); }
+  to { opacity:1; transform: scale(1) translateY(0); }
+}
+
+@media (prefers-color-scheme: light) {
+  :root { color: var(--text-dark); background: var(--bg-white); }
+  a:hover { color: var(--focus-light); }
+  button { background: var(--bg-light-grey); }
+}
+
+@media (max-width: 768px) {
+  .login-card { padding:2.5rem 2rem; max-width:90%; }
+  .brand-logo { font-size:2.5rem; }
+  .brand-tagline { font-size:1rem; margin-bottom:30px; }
+}
+
+@media (max-width: 480px) {
+  .login-card { padding:2rem 1.5rem; border-radius:20px; }
+  .brand-logo { font-size:2rem; }
+  .brand-tagline { font-size:0.9rem; }
 }
 
 .modal-overlay {

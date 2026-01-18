@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 const AddVolunteer = ({ onVolunteerAdded }) => {
     const [formData, setFormData] = useState({
@@ -13,8 +16,18 @@ const AddVolunteer = ({ onVolunteerAdded }) => {
         notes: ''
     });
 
+    const [status, setStatus] = useState('');
+    const [statusType, setStatusType] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return;
+
+        setLoading(true);
+        setStatus('');
+        setStatusType('');
+
         try {
             const dataToSend = {
                 ...formData,
@@ -22,33 +35,92 @@ const AddVolunteer = ({ onVolunteerAdded }) => {
             };
 
             await axios.post('http://localhost:5000/api/volunteers', dataToSend);
-            alert('המתנדב נוסף בהצלחה!');
-            
+
+            setStatus('המתנדבת נוספה בהצלחה!');
+            setStatusType('success');
+
             setFormData({
-                fullName: '', helpArea: '', seniority: '', 
-                experienceArea: '', technologies: '', 
+                fullName: '', helpArea: '', seniority: '',
+                experienceArea: '', technologies: '',
                 workPlace: '', contactInfo: '', notes: ''
             });
 
-            onVolunteerAdded();
+            setTimeout(() => {
+                onVolunteerAdded();
+            }, 1500);
+
         } catch (error) {
-            console.error("שגיאה בהוספת מתנדב:", error);
+            console.error("שגיאה בהוספת מתנדבת:", error);
+            setStatus('שגיאה בתקשורת עם השרת');
+            setStatusType('error');
+        } finally {
+            setLoading(false);
         }
     };
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
     return (
-        <div className="form-container">
+        <div className="fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
             <form onSubmit={handleSubmit}>
-                <h3>רישום מתנדב חדש</h3>
-                <input type="text" placeholder="שם מלא" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} required />
-                <input type="text" placeholder="תחום עזרה (למשל: עריכת קו''ח)" value={formData.helpArea} onChange={(e) => setFormData({...formData, helpArea: e.target.value})} required />
-                <input type="number" placeholder="וותק (שנים)" value={formData.seniority} onChange={(e) => setFormData({...formData, seniority: e.target.value})} required />
-                <input type="text" placeholder="תחום ניסיון" value={formData.experienceArea} onChange={(e) => setFormData({...formData, experienceArea: e.target.value})} required />
-                <input type="text" placeholder="טכנולוגיות (מופרדות בפסיק)" value={formData.technologies} onChange={(e) => setFormData({...formData, technologies: e.target.value})} />
-                <input type="text" placeholder="מקום עבודה" value={formData.workPlace} onChange={(e) => setFormData({...formData, workPlace: e.target.value})} />
-                <input type="text" placeholder="פרטי יצירת קשר" value={formData.contactInfo} onChange={(e) => setFormData({...formData, contactInfo: e.target.value})} required />
-                <textarea placeholder="הערות" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
-                <button type="submit">הוסף מתנדב</button>
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px' }}>
+                    <PersonAddIcon style={{ color: 'var(--primary-dark)' }} />
+                    <h3 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '22px' }}>הוספת מתנדבת חדשה</h3>
+                </div>
+
+                <input type="text" name="fullName" placeholder="שם מלא" value={formData.fullName} onChange={handleChange} required />
+                <input type="text" name="helpArea" placeholder="תחום עזרה (למשל: עריכת קו''ח)" value={formData.helpArea} onChange={handleChange} required />
+                <input type="number" name="seniority" placeholder="וותק (שנים)" value={formData.seniority} onChange={handleChange} required />
+                <input type="text" name="experienceArea" placeholder="תחום ניסיון" value={formData.experienceArea} onChange={handleChange} required />
+                <input type="text" name="technologies" placeholder="טכנולוגיות (מופרדות בפסיק)" value={formData.technologies} onChange={handleChange} />
+                <input type="text" name="workPlace" placeholder="מקום עבודה" value={formData.workPlace} onChange={handleChange} />
+                <input type="text" name="contactInfo" placeholder="פרטי יצירת קשר (טלפון/אימייל)" value={formData.contactInfo} onChange={handleChange} required />
+
+                <textarea
+                    name="notes"
+                    placeholder="הערות נוספות..."
+                    value={formData.notes}
+                    onChange={handleChange}
+                    rows={3}
+                />
+
+                {status && (
+                    <div className={`status-message ${statusType}`} style={{
+                        gridColumn: 'span 2',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: statusType === 'success' ? '#e8f5e9' : '#ffebee',
+                        color: statusType === 'success' ? '#2e7d32' : '#c62828'
+                    }}>
+                        {statusType === 'success' ? <CheckCircleOutlineIcon /> : <ErrorOutlineIcon />}
+                        <span>{status}</span>
+                    </div>
+                )}
+
+                <div style={{ gridColumn: 'span 2' }}>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="nav-btn active"
+                        style={{
+                            width: '100%',
+                            padding: '12px 30px',
+                            fontSize: '16px',
+                            backgroundColor: loading ? 'var(--bg-button-active)' : 'var(--primary-dark)',
+                            color: '#fff',
+                            gap: '8px',
+                            cursor: loading ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {loading ? 'שומר נתונים...' : 'הוספת מתנדבת למערכת'}
+                    </button>
+                </div>
             </form>
         </div>
     );
