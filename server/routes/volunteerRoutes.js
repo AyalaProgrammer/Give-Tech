@@ -25,7 +25,6 @@ router.get('/by-email/:email', async (req, res) => {
     }
 });
 
-
 router.put('/:id', async (req, res) => {
     try {
         const updatedVolunteer = await Volunteer.findByIdAndUpdate(req.params.id, req.body, { new: true });
